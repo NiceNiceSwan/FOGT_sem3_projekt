@@ -10,15 +10,30 @@ ELITE_COUNT = int(POPULATION_SIZE * 0.1)
 MUTATION_RATE = 0.2
 MUTATION_SCALE = 0.05
 
-def inside_conductor(x, y) -> float:
-    return x*x + y*y <= CIRCLE_RADIUS**2
+def inside_conductor(position: Position) -> bool:
+    """
+    checks whether the coordinates are inside the conductor
+    
+    :param position: position which we want to check
+    :type position: Position
+    :return: true if the coordinates are inside the conductor, false otherwise
+    :rtype: bool
+    """
+    return position.x**2 + position.y**2 <= CIRCLE_RADIUS**2
 
 def random_point_inside() -> Position:
+    """
+    generates a random point inside the shape
+    
+    :return: random point inside our shape
+    :rtype: Position
+    """
     while True:
         x = random.uniform(-CIRCLE_RADIUS, CIRCLE_RADIUS)
         y = random.uniform(-CIRCLE_RADIUS, CIRCLE_RADIUS)
-        if inside_conductor(x, y):
-            return Position(x, y)
+        position = Position(x, y)
+        if inside_conductor(position):
+            return position
 
 def energy(configuration: list[Position]) -> float:
     """
@@ -43,9 +58,23 @@ def energy(configuration: list[Position]) -> float:
     return total_energy
 
 def initialize_population() -> list[Position]:
+    """
+    creates POPULATION_SIZE configurations with NUMBER_OF_CHARGES of charges in each of them
+    
+    :return: list of configurations with charges and their position inside them
+    :rtype: list[Position]
+    """
     return [[random_point_inside() for charge in range(NUMBER_OF_CHARGES)] for entity in range(POPULATION_SIZE)]
 
 def evolve(population: list[Position]) -> list[Position]:
+    """
+    secures ELITE_COUNT best configuration, and forces the rest to mutate to hopefully achieve better results
+    
+    :param population: current configuration of charges
+    :type population: list[Position]
+    :return: evolved configuration of charges
+    :rtype: list[Position]
+    """
     scored = [(energy(configuration), configuration) for configuration in population]
     scored.sort(key=lambda x: x[0])
 
@@ -60,12 +89,30 @@ def evolve(population: list[Position]) -> list[Position]:
 
     return new_population
 
-def crossover(parent_1, parent_2) -> list[Position]:
+def crossover(parent_1: list[Position], parent_2: list[Position]) -> list[Position]:
+    """
+    takes a random set of charges from both parents and merges them to form a child
+    
+    :param parent_1: first list of charges
+    :type parent_1: list[Position]
+    :param parent_2: second list of charges
+    :type parent_2: list[Position]
+    :return: list of charges positions, having some elements from the first and second parent
+    :rtype: list[Position]
+    """
     cut = random.randint(1, NUMBER_OF_CHARGES - 1)
     child = parent_1[:cut] + parent_2[cut:]
     return child
 
 def mutate(configuration: list[Position]) -> list[Position]:
+    """
+    randomly changes the position of charges
+    
+    :param configuration: list of charge configurations
+    :type configuration: list[Position]
+    :return: list of charges with their positions slightly changed
+    :rtype: list[Position]
+    """
     new_configuration: list[Position] = []
 
     for position in configuration:
@@ -74,12 +121,11 @@ def mutate(configuration: list[Position]) -> list[Position]:
             continue
 
         while True:
-            x = position.x
-            y = position.y
-            x += random.gauss(0, MUTATION_SCALE)
-            y += random.gauss(0, MUTATION_SCALE)
-            if inside_conductor(x, y):
-                position = Position(x, y)
+            new_position = position.copy()
+            new_position.x += random.gauss(0, MUTATION_SCALE)
+            new_position.y += random.gauss(0, MUTATION_SCALE)
+            if inside_conductor(new_position):
+                position = new_position.copy()
                 break
                 
         new_configuration.append(position)
@@ -87,15 +133,8 @@ def mutate(configuration: list[Position]) -> list[Position]:
     return new_configuration
 
 def visualize(configuration: list[Position], conductor_radius=CIRCLE_RADIUS, show_ids=False):
-    """
-    configuration = [(x1,y1), (x2,y2), ...]
-    """
-
     fig, ax = plt.subplots(figsize=(6, 6))
 
-    # =========================
-    # PRZEWODNIK (KOŁO)
-    # =========================
     circle = plt.Circle((0, 0),
                         conductor_radius,
                         color='black',
@@ -103,24 +142,17 @@ def visualize(configuration: list[Position], conductor_radius=CIRCLE_RADIUS, sho
                         linewidth=2)
     ax.add_artist(circle)
 
-    # =========================
-    # ŁADUNKI
-    # =========================
     xs = [position.x for position in configuration]
     ys = [position.y for position in configuration]
 
     ax.scatter(xs, ys, color='red', s=80, zorder=3)
 
-    # Numeracja (opcjonalna)
     if show_ids:
         for i, (x, y) in enumerate(configuration):
             ax.text(x, y, f"{i}", fontsize=10,
                     ha='center', va='center',
                     color='white', weight='bold')
-
-    # =========================
-    # FORMATOWANIE
-    # =========================
+    
     ax.set_aspect('equal')
     ax.set_xlim(-CIRCLE_RADIUS * 1.25, CIRCLE_RADIUS * 1.25)
     ax.set_ylim(-CIRCLE_RADIUS * 1.25, CIRCLE_RADIUS * 1.25)
