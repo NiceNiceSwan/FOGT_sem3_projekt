@@ -2,11 +2,15 @@ from __future__ import annotations
 import math
 
 class Position:
+    x: int
+    y: int
+
     def __init__(self, _x: int, _y: int) -> None:
         self.x = _x
         self.y = _y
-    x: int
-    y: int
+
+    def copy(self) -> Position:
+        return Position(self.x, self.y)
 
     def __eq__(self, value):
         if not isinstance(value, Position):
@@ -16,6 +20,9 @@ class Position:
             return True
         
         return False
+
+    def __str__(self):
+        return "X: " + str(self.x) + ", Y: " + str(self.y)
     
     def distance(self: Position, other: Position) -> float:
         """
