@@ -1,11 +1,23 @@
 import random
 import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle
+import numpy as np
 from Position import Position
 
-CIRCLE_RADIUS = 1
-POPULATION_SIZE = 100
+CIRCLE = "circle"
+SQUARE = "square"
+
+SHAPE = SQUARE
+
+CIRCLE_X_LENGTH = 3
+CIRCLE_Y_LENGTH = 1
+CIRCLE_RADIUS = 2
+SQUARE_X_LENGTH = 2
+SQUARE_Y_LENGTH = 4
+
 GENERATIONS = 300
 NUMBER_OF_CHARGES = 15
+POPULATION_SIZE = 100
 ELITE_COUNT = int(POPULATION_SIZE * 0.1)
 MUTATION_RATE = 0.2
 MUTATION_SCALE = 0.05
@@ -19,7 +31,10 @@ def inside_conductor(position: Position) -> bool:
     :return: true if the coordinates are inside the conductor, false otherwise
     :rtype: bool
     """
-    return position.x**2 + position.y**2 <= CIRCLE_RADIUS**2
+    if SHAPE == CIRCLE:
+        return (position.x / CIRCLE_X_LENGTH)**2 + (position.y / CIRCLE_Y_LENGTH)**2 - CIRCLE_RADIUS**2 <= 0
+    if SHAPE == SQUARE:
+        return abs(position.x) < SQUARE_X_LENGTH / 2 and abs(position.y) < SQUARE_Y_LENGTH / 2
 
 def random_point_inside() -> Position:
     """
@@ -135,17 +150,23 @@ def mutate(configuration: list[Position]) -> list[Position]:
 def visualize(configuration: list[Position], conductor_radius=CIRCLE_RADIUS, show_ids=False):
     fig, ax = plt.subplots(figsize=(6, 6))
 
-    circle = plt.Circle((0, 0),
-                        conductor_radius,
-                        color='black',
-                        fill=False,
-                        linewidth=2)
-    ax.add_artist(circle)
+    if SHAPE == CIRCLE:
+        t = np.linspace(0, 2*np.pi, 100)
+        plt.plot( CIRCLE_X_LENGTH * CIRCLE_RADIUS * np.cos(t) , CIRCLE_Y_LENGTH * CIRCLE_RADIUS * np.sin(t) )
+        ax.set_xlim(-CIRCLE_X_LENGTH * CIRCLE_RADIUS * 1.25, CIRCLE_X_LENGTH * CIRCLE_RADIUS * 1.25)
+        ax.set_ylim(-CIRCLE_Y_LENGTH * CIRCLE_RADIUS * 1.25, CIRCLE_Y_LENGTH * CIRCLE_RADIUS * 1.25)
+    if SHAPE == SQUARE:
+        ax.add_patch(Rectangle((-SQUARE_X_LENGTH / 2, -SQUARE_Y_LENGTH / 2), 
+                                SQUARE_X_LENGTH, 
+                                SQUARE_Y_LENGTH, 
+                                fill = False))
+        ax.set_xlim(-SQUARE_X_LENGTH * 0.75, SQUARE_X_LENGTH * 0.75)
+        ax.set_ylim(-SQUARE_Y_LENGTH * 0.75, SQUARE_Y_LENGTH * 0.75)
 
     xs = [position.x for position in configuration]
     ys = [position.y for position in configuration]
 
-    ax.scatter(xs, ys, color='red', s=80, zorder=3)
+    ax.scatter(xs, ys, color='red', s=40, zorder=3)
 
     if show_ids:
         for i, (x, y) in enumerate(configuration):
@@ -154,8 +175,6 @@ def visualize(configuration: list[Position], conductor_radius=CIRCLE_RADIUS, sho
                     color='white', weight='bold')
     
     ax.set_aspect('equal')
-    ax.set_xlim(-CIRCLE_RADIUS * 1.25, CIRCLE_RADIUS * 1.25)
-    ax.set_ylim(-CIRCLE_RADIUS * 1.25, CIRCLE_RADIUS * 1.25)
 
     ax.set_xlabel("x")
     ax.set_ylabel("y")
