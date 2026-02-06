@@ -178,7 +178,7 @@ def visualize(configuration: list[Position], conductor_radius=CIRCLE_RADIUS, sho
 
     ax.set_xlabel("x")
     ax.set_ylabel("y")
-    ax.set_title("Konfiguracja ładunków – minimum energii")
+    ax.set_title("Konfiguracja ładunków - minimum energii")
 
     ax.grid(True, linestyle='--', alpha=0.4)
 
