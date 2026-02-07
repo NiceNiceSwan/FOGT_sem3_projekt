@@ -44,8 +44,13 @@ def random_point_inside() -> Position:
     :rtype: Position
     """
     while True:
-        x = random.uniform(-CIRCLE_RADIUS, CIRCLE_RADIUS)
-        y = random.uniform(-CIRCLE_RADIUS, CIRCLE_RADIUS)
+        if SHAPE == CIRCLE:
+            x = random.uniform(-CIRCLE_RADIUS * CIRCLE_X_LENGTH, CIRCLE_RADIUS * CIRCLE_X_LENGTH)
+            y = random.uniform(-CIRCLE_RADIUS * CIRCLE_Y_LENGTH, CIRCLE_RADIUS * CIRCLE_Y_LENGTH)
+        else:
+            x = random.uniform(-SQUARE_X_LENGTH / 2, SQUARE_X_LENGTH / 2)
+            y = random.uniform(-SQUARE_Y_LENGTH / 2, SQUARE_Y_LENGTH / 2)
+        
         position = Position(x, y)
         if inside_conductor(position):
             return position
